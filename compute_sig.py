@@ -60,16 +60,12 @@ tot_solar = convert_neutrinos_to_interactions_per_second(t_solar)
 tot_reactor = convert_neutrinos_to_interactions_per_second(t_reactor)
 depth = [10, 100, 1000]#,10000]
 sigs_1 = []
-sigs_2 = []
 for depths in depth:
     t_muons=np.load("data/muons_at_depth_%s.npy"%depths)
     tot_muons = convert_muons_to_interactions_per_second(t_muons)
     sig_1 = sig1(tot_reactor, tot_solar, tot_muons)
     sigs_1.append(np.log10(sig_1))
-    sig_2 = sig2(tot_reactor, tot_solar, tot_muons)
-    sigs_2.append(np.log10(sig_2))
     plt.plot(np.log10(depths),np.log10(sig_1),label="Depth: %s m"%depths, marker="o")
-    #plt.plot(np.log10(depths),np.log10(sig_2),  marker="x")
     muons = 0
 
 #extract optimal depths
@@ -78,9 +74,12 @@ params = np.polyfit(np.log10(depth),sigs_1,1)
 threshold_sig = np.log10(5)
 threshold_depth = (threshold_sig - params[1])/params[0]
 lower_lim = 0
+upper_lim = 0
 if(threshold_depth < np.log10(depth[0])): lower_lim = threshold_depth
 else : lower_lim= np.log10(depth[0])
-depth_scan = np.linspace(lower_lim,np.log10(depth[2]),1000)
+if(threshold_depth > np.log10(depth[2])): upper_lim = threshold_depth
+else : upper_lim= np.log10(depth[2])
+depth_scan = np.linspace(lower_lim,upper_lim,1000)
 sig_scan = depth_scan*params[0] +params[1]
 #finish plotting
 plt.plot(threshold_depth,threshold_sig,label="5sigma at %3.1fm"%10**threshold_depth,marker="*", color="red")
